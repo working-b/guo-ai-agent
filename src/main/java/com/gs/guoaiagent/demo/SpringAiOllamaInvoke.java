@@ -16,13 +16,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class SpringAiOllamaInvoke implements CommandLineRunner {
 
-    @Resource
-    private ChatModel ollamaChatModel;
+//    @Resource
+//    private ChatModel ollamaChatModel;
 
 
     @Override
     public void run(String... args) throws Exception {
-        AssistantMessage assistantMessage = ollamaChatModel.call(new Prompt("hello,你是谁")).getResult().getOutput();
-        System.out.println(assistantMessage.getText());
+//        AssistantMessage assistantMessage = ollamaChatModel.call(new Prompt("hello,你是谁")).getResult().getOutput();
+//        System.out.println(assistantMessage.getText());
     }
 }
