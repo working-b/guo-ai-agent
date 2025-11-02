@@ -6,10 +6,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.QuestionAnswerAdvisor;
+import org.springframework.ai.chat.client.advisor.RetrievalAugmentationAdvisor;
+import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.InMemoryChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Component;
 
@@ -36,8 +39,12 @@ public class LoveApp {
 
     private final ChatClient chatClient;
 
+    // pgVectorStore
     @Resource
-    private VectorStore loveAppVectorStore;
+    private VectorStore vectorStore;
+
+    @Resource
+    private Advisor loveAppRagCloudAdvisor;
 
     /**
      * 初始化ai客户端
@@ -117,7 +124,33 @@ public class LoveApp {
                                 .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10);
                     }
                 })
-                .advisors(new QuestionAnswerAdvisor(loveAppVectorStore))
+                // 应用 RAG 知识问答
+                 .advisors(new QuestionAnswerAdvisor(vectorStore))
+
+                // 应用 RAG 知识检索服务
+                .advisors(loveAppRagCloudAdvisor)
+                .advisors(new MyLoggerAdvisor())
+                .call()
+                .chatResponse();
+        assert chatResponse != null;
+        String content = chatResponse.getResult().getOutput().getText();
+        log.info("content:{}", content);
+        return content;
+    }
+    // -- RAG 基于pgvector
+    public String doChatWithRAG2(String message, String chatId) {
+        ChatResponse chatResponse = chatClient.prompt()
+                .user(message)
+                .advisors(new Consumer<ChatClient.AdvisorSpec>() {
+                    @Override
+                    public void accept(ChatClient.AdvisorSpec advisorSpec) {
+                        advisorSpec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
+                                .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10);
+                    }
+                })
+                // 应用 RAG 知识问答
+                .advisors(new QuestionAnswerAdvisor(vectorStore))
+                //.advisors(RetrievalAugmentationAdvisor.builder().documentRetriever(VectorStoreDocumentRetriever.builder().vectorStore(vectorStore).build()).build())
                 .advisors(new MyLoggerAdvisor())
                 .call()
                 .chatResponse();

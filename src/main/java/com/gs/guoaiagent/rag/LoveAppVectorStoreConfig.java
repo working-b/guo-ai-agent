@@ -18,10 +18,11 @@ public class LoveAppVectorStoreConfig {
     @Resource
     private LoveAppDocumentLoader loveAppDocumentLoader;
 
-    @Bean
-    public VectorStore loveAppVectorStore(EmbeddingModel dashscopeEmbeddingModel) {
-        SimpleVectorStore simpleVectorStore = SimpleVectorStore.builder(dashscopeEmbeddingModel).build();
-        simpleVectorStore.add(loveAppDocumentLoader.loadMarkdowns());
-        return simpleVectorStore;
-    }
+    // 已经通过 PgVectorVectorStore代替
+//    @Bean
+//    public VectorStore loveAppVectorStore(EmbeddingModel dashscopeEmbeddingModel) {
+//        SimpleVectorStore simpleVectorStore = SimpleVectorStore.builder(dashscopeEmbeddingModel).build();
+//        simpleVectorStore.add(loveAppDocumentLoader.loadMarkdowns());
+//        return simpleVectorStore;
+//    }
 }
