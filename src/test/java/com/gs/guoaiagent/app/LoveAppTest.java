@@ -1,6 +1,8 @@
 package com.gs.guoaiagent.app;
 
 import com.gs.guoaiagent.rag.LoveAppDocumentLoader;
+import com.gs.guoaiagent.tools.FileOperationTool;
+import com.gs.guoaiagent.tools.WebSearchTool;
 import jakarta.annotation.Resource;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -9,6 +11,7 @@ import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.pgvector.PgVectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 
 
@@ -28,6 +31,8 @@ class LoveAppTest {
     private PgVectorStore pgVectorStore;
     @Resource
     private LoveAppDocumentLoader loveAppDocumentLoader;
+    @Value("${search-api.api-key}")
+    private String searchApiKey;
 
     @Test
     void doChat() {
@@ -74,5 +79,18 @@ class LoveAppTest {
     public void doChat5(){
         String result = loveApp.doChatWithRAG2("你是谁？", "s2133111");
         System.out.println(result);
+    }
+
+    @Test
+    public void testFileTool(){
+        FileOperationTool fileOperationTool = new FileOperationTool();
+        fileOperationTool.writeFile("guoshi.txt","我是果实\\n dasd啊");
+    }
+
+    @Test
+    public void testWebSearchTool(){
+        WebSearchTool webSearchTool = new WebSearchTool(searchApiKey);
+        String l = webSearchTool.searchWeb("李云龙");
+        System.out.println(l);
     }
 }
