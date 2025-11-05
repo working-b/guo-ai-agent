@@ -13,6 +13,7 @@ import org.springframework.ai.chat.memory.InMemoryChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
+import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Component;
 
@@ -157,6 +158,38 @@ public class LoveApp {
         assert chatResponse != null;
         String content = chatResponse.getResult().getOutput().getText();
         log.info("content:{}", content);
+        return content;
+    }
+
+    // AI 调用工具能力
+    @Resource
+    private ToolCallback[] allTools;
+
+    /**
+     * AI 恋爱报告功能（支持调用工具）
+     *
+     * @param message
+     * @param chatId
+     * @return
+     */
+    public String doChatWithTools(String message, String chatId) {
+        ChatResponse chatResponse = chatClient
+                .prompt()
+                .user(message)
+                .advisors(new Consumer<ChatClient.AdvisorSpec>() {
+                    @Override
+                    public void accept(ChatClient.AdvisorSpec advisorSpec) {
+                        advisorSpec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
+                                .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10);
+                    }
+                })
+                // 开启日志，便于观察效果
+                .advisors(new MyLoggerAdvisor())
+                .tools(allTools)
+                .call()
+                .chatResponse();
+        String content = chatResponse.getResult().getOutput().getText();
+        log.info("content: {}", content);
         return content;
     }
 }
